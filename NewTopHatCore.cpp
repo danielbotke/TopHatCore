@@ -7,15 +7,17 @@ byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x9B, 0x36 }; //physical mac address
 byte ip[] = { 192, 168, 0, 100 }; // ip in lan
 byte gateway[] = { 192, 168, 0, 1 }; // internet access via router
 byte subnet[] = { 255, 255, 255, 0 }; //subnet mask
-EthernetServer server(80); //server port
+EthernetServer server(9898); //server port
+unsigned int localPort = 8888;
 
 String readString;
-String port;
 char search[100];
 int counter = 0;
 int cont;
+String port = "";
+EthernetUDP Udp;
 
-const int homeId = 2; //Home identificator
+const String homeId = "4_1LFN-C#|"; //Home identificator
 const int kL = 31; //Kitchen Light
 const int kLSt = 32; //Status Kitchen Light
 const int kW = 33; //Kitchen Window
@@ -54,8 +56,9 @@ void setup() {
 
 	//start shield Ethernet
 	Ethernet.begin(mac, ip, gateway, subnet);
+	Udp.begin(localPort);
 	server.begin();
-	// Serial.begin(9600);
+	Serial.begin(9600);
 }
 
 void loop() {
@@ -104,70 +107,39 @@ void loop() {
 
 						}
 					}
-
-					//clearing string for next read
-					cont = 0;
-
-					client.println(homeId);
-					client.println("/Kitchen;l;");
-					client.println(kL);
-					client.println(";");
-					client.println(digitalRead(kLSt));
-					client.println(";w;");
-					client.println(kW);
-					client.println(";");
-					client.println(digitalRead(kWSt));
-					client.println("/Living;l;");
-					client.println(lL);
-					client.println(";");
-					client.println(digitalRead(lLSt));
-					client.println(";w;");
-					client.println(lW);
-					client.println(";");
-					client.println(digitalRead(lWSt));
-					client.println("/Bad1;l;");
-					client.println(b1L);
-					client.println(";");
-					client.println(digitalRead(b1LSt));
-					client.println(";w;");
-					client.println(b1W);
-					client.println(";");
-					client.println(digitalRead(b1WSt));
-					client.println("/Bad2;l;");
-					client.println(b2L);
-					client.println(";");
-					client.println(digitalRead(b2LSt));
-					client.println(";w;");
-					client.println(b2W);
-					client.println(";");
-					client.println(digitalRead(b2WSt));
-					delay(1);
-					//stopping client
+  				//stopping client
 					client.stop();
-
 				}
 			}
 		}
 	}
-	if (counter == 50000000000) {
-		char Temp[10];
-		IPAddress server(192, 168, 0, 21); // Número IP do WebService
+	if (counter == 5) {
+           //     Serial.println("Entrou");
+		String aux = homeId + "/Kitchen;l;" + kL + ";" + digitalRead(kLSt)+ ";w;" + kW + ";" + digitalRead(kWSt) + "/Living;l;" + lL + ";" + digitalRead(lLSt) + ";w;" + lW + ";" + digitalRead(lWSt) + "/Bad1;l;" + b1L + ";" + digitalRead(b1LSt) + ";w;" + b1W + ";" + digitalRead(b1WSt) + "/Bad2;l;" + b2L + ";" + digitalRead(b2LSt) + ";w;" + b2W + ";" + digitalRead(b2WSt);
+		delay(1);
+        IPAddress remote(192, 168, 0, 102);
+        // send a reply, to the IP address and port that sent us the packet we received
+		int success = Udp.beginPacket(remote, 9090);
+		 Serial.print("Init Packet: ");
+		 Serial.println(success);
+		success = Udp.print(aux);
+		 Serial.print("Pacote enviado: ");
+         Serial.println(success);
+		success = Udp.endPacket();
+		 Serial.print("End Packet: ");
+		 Serial.println(success);
 
-		// if you get a connection, report back via serial:
-		if (client.connect(server, 80)) {
-			// Make a HTTP request:
-			client.println("POST /ws/WsTemp.asmx/incluir HTTP/1.1");
-			client.println("Host: localhost");
-			client.println("Content-Type: application/x-www-form-urlencoded");
-			client.println("Content-Length: 342");
-			client.println();
-			client.println();
-		}
-		if (client.available()) {
-			char c = client.read();
-		}
+		 Serial.print("IP Remoto: ");
+		 Serial.println(Udp.remoteIP());
+
+		 Serial.print("Porta Remota: ");
+		 Serial.println(Udp.remotePort());
+
+		// Encerra este socket
+		Udp.stop();
+		delay(10);
+        counter = 0;
 	}
-	counter ++;
-
+        counter++;
 }
 
