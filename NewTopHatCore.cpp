@@ -113,30 +113,26 @@ void loop() {
 			}
 		}
 	}
-	if (counter == 5) {
+	if (counter == 5000) {
            //     Serial.println("Entrou");
 		String aux = homeId + "/Kitchen;l;" + kL + ";" + digitalRead(kLSt)+ ";w;" + kW + ";" + digitalRead(kWSt) + "/Living;l;" + lL + ";" + digitalRead(lLSt) + ";w;" + lW + ";" + digitalRead(lWSt) + "/Bad1;l;" + b1L + ";" + digitalRead(b1LSt) + ";w;" + b1W + ";" + digitalRead(b1WSt) + "/Bad2;l;" + b2L + ";" + digitalRead(b2LSt) + ";w;" + b2W + ";" + digitalRead(b2WSt);
 		delay(1);
+		const char *msg = aux.c_str();
         IPAddress remote(192, 168, 0, 102);
         // send a reply, to the IP address and port that sent us the packet we received
-		int success = Udp.beginPacket(remote, 9090);
-		 Serial.print("Init Packet: ");
-		 Serial.println(success);
-		success = Udp.print(aux);
-		 Serial.print("Pacote enviado: ");
-         Serial.println(success);
+		int success = Udp.beginPacket(remote, 1901);
+		Serial.print("Init Packet: ");
+		Serial.println(success);
+		success = Udp.write(msg, (int) aux.length());
+		Serial.print("Pacote enviado: ");
+        Serial.println(success);
 		success = Udp.endPacket();
-		 Serial.print("End Packet: ");
-		 Serial.println(success);
-
-		 Serial.print("IP Remoto: ");
-		 Serial.println(Udp.remoteIP());
-
-		 Serial.print("Porta Remota: ");
-		 Serial.println(Udp.remotePort());
-
-		// Encerra este socket
-		Udp.stop();
+		Serial.print("End Packet: ");
+		Serial.println(success);
+        Serial.print("IP Remoto: ");
+        Serial.println(Udp.remoteIP());
+        Serial.print("Porta Remota: ");
+		Serial.println(Udp.remotePort());
 		delay(10);
         counter = 0;
 	}
